@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Shield, Lock, User, Layers, Cpu, GitBranch, FileText, ChevronRight, Fingerprint, Camera, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 
 const PHASE = {
   LOGIN: 'LOGIN',
@@ -100,48 +99,15 @@ export default function Auth({ onLogin }) {
     setError('');
 
     try {
-      // MASTER BYPASS for Rapid Testing (9 / 9) - Skips all DB and Biometric checks
-      if (email === '9' && password === '9') {
+      if (email === '1' && password === '1') {
         setTimeout(() => {
-          onLogin({ email: '9', name: 'Nexus Operator' });
+          onLogin({ email: '1', name: 'Nexus Operator' });
           setIsConnecting(false);
         }, 500);
         return;
-      }
-
-      if (process.env.NEXT_PUBLIC_SUPABASE_URL === 'your_supabase_url' || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
-        setError('Configuration Required: Please update .env.local with your Supabase URL and Key.');
+      } else {
+        setError('Invalid operator credentials.');
         setIsConnecting(false);
-        return;
-      }
-
-      let result;
-      try {
-        if (isRegistering) {
-          result = await supabase.auth.signUp({ email, password });
-        } else {
-          result = await supabase.auth.signInWithPassword({ email, password });
-        }
-      } catch (fetchErr) {
-        setError('Network Error: Could not reach Supabase. Check your URL and connection.');
-        setIsConnecting(false);
-        return;
-      }
-
-      if (result?.error) {
-        setError(result.error.message);
-        setIsConnecting(false);
-      } else if (result?.data?.user) {
-        // Sign-up might require email confirmation unless disabled in Supabase
-        if (isRegistering && !result.data.session) {
-          setError('Check your email for confirmation link.');
-          setIsConnecting(false);
-        } else {
-          setTimeout(() => {
-            setPhase(PHASE.NEURAL_SCAN);
-            setIsConnecting(false);
-          }, 1200);
-        }
       }
     } catch (err) {
       setError('An unexpected authentication error occurred.');
